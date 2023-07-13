@@ -1,5 +1,5 @@
 import { Button, Space, Typography, Upload, Progress } from 'antd';
-import { FileOutlined } from '@ant-design/icons'
+import { FileOutlined, DownloadOutlined } from '@ant-design/icons'
 import './App.css';
 import axios from 'axios';
 
@@ -11,6 +11,9 @@ function App() {
   const handleFileUpload = ({ file }) => {
     const formData = new FormData();
     formData.append('files', file); 
+    console.log(file);
+
+   
 
     axios.post('http://localhost:5040/upload', formData, {
       onUploadProgress: (progressEvent) => {
@@ -27,6 +30,25 @@ function App() {
     });
   };
 
+  const handleDownload = (fileName) => {
+    console.log(fileName);
+    axios({
+      url: `http://localhost:5040/files/${fileName}`,
+      method: 'GET',
+      responseType: 'blob',
+    })
+      .then((response) => {
+        const blob = response.data;
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+      });
+  };
+  
+
   return (
     <Space direction='vertical' style={{
       width: "100vw",
@@ -42,8 +64,9 @@ function App() {
         <Space direction='vertical' style={{ backgroundColor: 'rgba(0,0,0,0.05)', width: 500, padding: 8 }} key={file.uid}>
           <Space>
             <FileOutlined />
-            <Typography>{file.name}</Typography>
+            <Typography>{file.name} <Button style={{marginLeft: 295, backgroundColor: 'rgba(0,0,0,0.03)' , height: 30}} onClick={()=> handleDownload(file.name)}><DownloadOutlined /></Button></Typography>
           </Space>
+          
           <Progress percent={Math.ceil(file.progress * 100)} />
         </Space>
       ))}
